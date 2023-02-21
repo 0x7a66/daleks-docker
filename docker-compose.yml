@@ -1,0 +1,52 @@
+version: '2.1'
+
+services:
+  daleks:
+    image: 0x7a66/daleks
+    container_name: daleks
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    links:
+      - mysql
+      - redis
+      - mongodb
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=0x7a66
+      - MYSQL_ROOT_HOST=%
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 1s
+      retries: 10
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:4.4
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      - TZ=Asia/Shanghai
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=0x7a66
+
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    command: redis-server --requirepass 0x7a66
